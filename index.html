@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圓周長與直徑關係電腦版</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B6B6B">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2F0;
+    --paper:#FFFFFF;
+    --ink:#1C2321;
+    --muted:#6B7472;
+    --line:#CBD6D1;
+    --teal:#1B6B6B;
+    --blue:#2563EB;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; height:100%; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    line-height:1.5;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .card{
+    flex:1;
+    min-height:0;
+    width:100%;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 26px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:30px;
+    flex-wrap:wrap;
+    flex:0 0 auto;
+  }
+  .title-block{ margin-right:auto; }
+  h1{
+    font-family:'Noto Serif TC', serif;
+    font-weight:700;
+    font-size:1.5rem;
+    margin:0;
+    letter-spacing:.02em;
+    white-space:nowrap;
+  }
+  .hint{
+    margin:2px 0 0;
+    font-size:.92rem;
+    color:var(--muted);
+  }
+
+  .controls{
+    display:flex;
+    flex-wrap:nowrap;
+    align-items:center;
+    gap:44px;
+    flex:0 0 auto;
+    padding-bottom:2px;
+  }
+  .control-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex:1 1 50%;
+    min-width:0;
+  }
+  .control-row label{
+    font-size:1.05rem;
+    font-weight:500;
+    white-space:nowrap;
+    min-width:3.6em;
+  }
+  input[type="range"]{
+    flex:1 1 auto;
+    min-width:0;
+    accent-color:var(--blue);
+  }
+  #circumSlider{ accent-color:var(--teal); }
+  .numfield{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    border:1px solid var(--blue);
+    border-radius:4px;
+    padding:4px 8px;
+    background:#FBFCFB;
+  }
+  .numfield input[type="number"]{
+    width:62px;
+    border:none;
+    background:transparent;
+    font-family:'Noto Serif TC', serif;
+    font-weight:700;
+    font-size:1.05rem;
+    color:var(--blue);
+    text-align:right;
+  }
+  .numfield input[type="number"]:focus{ outline:none; }
+  .numfield span{ font-size:.9rem; color:var(--muted); }
+  label.teal-label{ color:var(--teal); }
+  label.blue-label{ color:var(--blue); }
+  .numfield.teal-field{ border-color:var(--teal); }
+  .numfield.teal-field input[type="number"]{ color:var(--teal); }
+
+  button.straighten{
+    padding:12px 22px;
+    font-size:1.02rem;
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:500;
+    color:#fff;
+    background:var(--ink);
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .2s ease;
+  }
+  button.straighten:hover{ background:#000; }
+  button.straighten:disabled{ opacity:.5; cursor:default; }
+
+  .stage{
+    flex:1 1 auto;
+    min-height:0;
+    display:flex;
+  }
+  svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+
+  @media (max-width: 1100px){
+    h1{ font-size:1.25rem; }
+    .topbar{ gap:18px; }
+    .controls{ gap:24px; }
+    .control-row{ gap:8px; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="topbar">
+    <div class="title-block">
+      <h1>圓周長與直徑的關係</h1>
+      <p class="hint">拖曳滑桿改變圓的大小，再把圓周長拉直，和直徑並排比長度。</p>
+    </div>
+    <button class="straighten" id="straightenBtn">把圓周長拉直、直徑拉下來比長度</button>
+  </div>
+
+  <div class="controls">
+    <div class="control-row">
+      <label for="diameterSlider" class="blue-label">直徑</label>
+      <input type="range" id="diameterSlider" min="2" max="100" value="80" step="1">
+      <div class="numfield blue-field">
+        <input type="number" id="diameterInput" min="2" max="100" step="1" value="80">
+        <span>cm</span>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <label for="circumSlider" class="teal-label">圓周長</label>
+      <input type="range" id="circumSlider" min="6.28" max="314" value="251.2" step="0.5">
+      <div class="numfield teal-field">
+        <input type="number" id="circumInput" min="6.28" max="314" step="0.5" value="251.2">
+        <span>cm</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <svg id="diagram" viewBox="0 0 1920 1000" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <circle id="circleOutline" cx="960" cy="330" r="286" fill="none" stroke="#DBDBDB" stroke-width="4"></circle>
+      <polyline id="circumLine" fill="none" stroke="#1B6B6B" stroke-width="8" stroke-linecap="round"></polyline>
+      <line id="diameterLine" stroke="#2563EB" stroke-width="8" stroke-linecap="round"></line>
+
+      <text id="diameterChordLabel" font-family="Noto Sans TC" font-size="30" font-weight="700" fill="#2563EB" text-anchor="middle">直徑</text>
+      <text id="circumChordLabel" font-family="Noto Sans TC" font-size="30" font-weight="700" fill="#1B6B6B" text-anchor="start">圓周長</text>
+
+      <text id="diameterBarLabel" font-family="Noto Sans TC" font-size="34" font-weight="700" fill="#2563EB" opacity="0"></text>
+      <text id="circumBarLabel" font-family="Noto Sans TC" font-size="34" font-weight="700" fill="#1B6B6B" opacity="0"></text>
+
+      <line id="tick1" stroke="#1C2321" stroke-width="1.6" stroke-dasharray="5 6" opacity="0"></line>
+      <line id="tick2" stroke="#1C2321" stroke-width="1.6" stroke-dasharray="5 6" opacity="0"></line>
+      <line id="tick3" stroke="#1C2321" stroke-width="1.6" stroke-dasharray="5 6" opacity="0"></line>
+
+      <rect id="ruler1" rx="5" height="34" fill="#DCE8FB" stroke="#2563EB" stroke-width="2" opacity="0"></rect>
+      <rect id="ruler2" rx="5" height="34" fill="#DCE8FB" stroke="#2563EB" stroke-width="2" opacity="0"></rect>
+      <rect id="ruler3" rx="5" height="34" fill="#DCE8FB" stroke="#2563EB" stroke-width="2" opacity="0"></rect>
+      <rect id="rulerPartial" rx="5" height="34" fill="#FDE68A" stroke="#B45309" stroke-width="2" opacity="0"></rect>
+
+      <text id="ruler1Label" font-size="24" font-weight="700" text-anchor="middle" fill="#2563EB" font-family="Noto Sans TC" opacity="0">1</text>
+      <text id="ruler2Label" font-size="24" font-weight="700" text-anchor="middle" fill="#2563EB" font-family="Noto Sans TC" opacity="0">2</text>
+      <text id="ruler3Label" font-size="24" font-weight="700" text-anchor="middle" fill="#2563EB" font-family="Noto Sans TC" opacity="0">3</text>
+      <text id="rulerPartialLabel" font-size="22" font-weight="700" text-anchor="middle" fill="#B45309" font-family="Noto Sans TC" opacity="0"></text>
+
+      <text id="rulerConclusion" font-size="34" font-weight="700" text-anchor="middle" fill="#1C2321" font-family="Noto Sans TC" opacity="0"></text>
+    </svg>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const CX = 960, CY = 330;
+  const START_ANGLE = -90;
+  const N = 120;
+  const DRAW_R_PX_MIN = 95, DRAW_R_PX_MAX = 286;
+  const RADIUS_MIN_CM = 1, RADIUS_MAX_CM = 50;
+  const CIRCLE_RATIO = 3.14;
+  const CIRCUM_MIN_CM = 2 * CIRCLE_RATIO * RADIUS_MIN_CM;
+  const CIRCUM_MAX_CM = 2 * CIRCLE_RATIO * RADIUS_MAX_CM;
+  const LINE_X0 = 60;
+  const DIAM_BAR_Y = 740;
+  const CIRC_BAR_Y = 820;
+  const RULER_Y = 890;
+  const RULER_H = 34;
+
+  const diameterSlider = document.getElementById('diameterSlider');
+  const diameterInput = document.getElementById('diameterInput');
+  const circumSlider = document.getElementById('circumSlider');
+  const circumInput = document.getElementById('circumInput');
+  const straightenBtn = document.getElementById('straightenBtn');
+
+  const circleOutline = document.getElementById('circleOutline');
+  const circumLine = document.getElementById('circumLine');
+  const diameterLine = document.getElementById('diameterLine');
+  const diameterChordLabel = document.getElementById('diameterChordLabel');
+  const circumChordLabel = document.getElementById('circumChordLabel');
+  const diameterBarLabel = document.getElementById('diameterBarLabel');
+  const circumBarLabel = document.getElementById('circumBarLabel');
+
+  const tick1 = document.getElementById('tick1');
+  const tick2 = document.getElementById('tick2');
+  const tick3 = document.getElementById('tick3');
+  const ruler1 = document.getElementById('ruler1');
+  const ruler2 = document.getElementById('ruler2');
+  const ruler3 = document.getElementById('ruler3');
+  const rulerPartial = document.getElementById('rulerPartial');
+  const ruler1Label = document.getElementById('ruler1Label');
+  const ruler2Label = document.getElementById('ruler2Label');
+  const ruler3Label = document.getElementById('ruler3Label');
+  const rulerPartialLabel = document.getElementById('rulerPartialLabel');
+  const rulerConclusion = document.getElementById('rulerConclusion');
+
+  let radiusCm = parseFloat(diameterSlider.value) / 2;
+  let isStraight = false;
+  let animating = false;
+
+  function radiusToDrawPx(rCm){
+    const t = (rCm - RADIUS_MIN_CM) / (RADIUS_MAX_CM - RADIUS_MIN_CM);
+    return DRAW_R_PX_MIN + t * (DRAW_R_PX_MAX - DRAW_R_PX_MIN);
+  }
+  function drawPxToBarPx(drawRPx){ return drawRPx; } // 拉直後的長度與圓本身的半徑一致，不額外縮放
+
+  function polar(angDeg, r, cx, cy){
+    const a = angDeg * Math.PI / 180;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  }
+  function pointsToStr(pts){
+    return pts.map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' ');
+  }
+  function getCirclePoints(rPx){
+    const pts = [];
+    for(let i = 0; i <= N; i++){
+      const a = START_ANGLE + 360 * (i / N);
+      pts.push(polar(a, rPx, CX, CY));
+    }
+    return pts;
+  }
+  function getStraightCircumPoints(barRPx){
+    const C = 2 * CIRCLE_RATIO * barRPx;
+    const pts = [];
+    for(let i = 0; i <= N; i++){
+      pts.push({ x: LINE_X0 + C * (i / N), y: CIRC_BAR_Y });
+    }
+    return pts;
+  }
+  function easeInOutCubic(x){
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  }
+
+  function updateBarLabels(rCm){
+    const diameterCm = 2 * rCm;
+    const circumCm = 2 * CIRCLE_RATIO * rCm;
+    diameterBarLabel.setAttribute('x', LINE_X0);
+    diameterBarLabel.setAttribute('y', (DIAM_BAR_Y - 24).toFixed(2));
+    diameterBarLabel.textContent = '直徑 ≈ ' + diameterCm.toFixed(2) + ' cm';
+    circumBarLabel.setAttribute('x', LINE_X0);
+    circumBarLabel.setAttribute('y', (CIRC_BAR_Y - 24).toFixed(2));
+    circumBarLabel.textContent = '圓周長 ≈ ' + circumCm.toFixed(2) + ' cm';
+  }
+
+  function showRuler(barRPx){
+    const diameterBarPx = 2 * barRPx;
+    const circumBarPx = 2 * CIRCLE_RATIO * barRPx;
+    const full = Math.floor(circumBarPx / diameterBarPx);
+    const remainderPx = circumBarPx - full * diameterBarPx;
+    const remainderRatio = remainderPx / diameterBarPx;
+
+    const segs = [ruler1, ruler2, ruler3];
+    const labels = [ruler1Label, ruler2Label, ruler3Label];
+    for(let i = 0; i < 3; i++){
+      const x0 = LINE_X0 + i * diameterBarPx;
+      if(i < full){
+        segs[i].setAttribute('x', x0.toFixed(2));
+        segs[i].setAttribute('y', (RULER_Y - RULER_H / 2).toFixed(2));
+        segs[i].setAttribute('width', diameterBarPx.toFixed(2));
+        segs[i].style.opacity = 1;
+        labels[i].setAttribute('x', (x0 + diameterBarPx / 2).toFixed(2));
+        labels[i].setAttribute('y', (RULER_Y + 9).toFixed(2));
+        labels[i].style.opacity = 1;
+      } else {
+        segs[i].style.opacity = 0;
+        labels[i].style.opacity = 0;
+      }
+    }
+
+    const px0 = LINE_X0 + full * diameterBarPx;
+    rulerPartial.setAttribute('x', px0.toFixed(2));
+    rulerPartial.setAttribute('y', (RULER_Y - RULER_H / 2).toFixed(2));
+    rulerPartial.setAttribute('width', Math.max(remainderPx, 3).toFixed(2));
+    rulerPartial.style.opacity = 1;
+    rulerPartialLabel.setAttribute('x', (px0 + remainderPx / 2 + 26).toFixed(2));
+    rulerPartialLabel.setAttribute('y', (RULER_Y + 9).toFixed(2));
+    rulerPartialLabel.textContent = '+' + remainderRatio.toFixed(2);
+    rulerPartialLabel.style.opacity = 1;
+
+    const ticks = [tick1, tick2, tick3];
+    for(let i = 0; i < 3; i++){
+      const x = LINE_X0 + (i + 1) * diameterBarPx;
+      ticks[i].setAttribute('x1', x.toFixed(2));
+      ticks[i].setAttribute('x2', x.toFixed(2));
+      ticks[i].setAttribute('y1', (CIRC_BAR_Y + 10).toFixed(2));
+      ticks[i].setAttribute('y2', (RULER_Y - RULER_H / 2).toFixed(2));
+      ticks[i].style.opacity = (i + 1 <= full) ? 1 : 0;
+    }
+
+    rulerConclusion.setAttribute('x', (LINE_X0 + circumBarPx / 2).toFixed(2));
+    rulerConclusion.setAttribute('y', (RULER_Y + 68).toFixed(2));
+    rulerConclusion.textContent = '圓周長 ≈ ' + (circumBarPx / diameterBarPx).toFixed(2) + ' 個直徑長（剛好 3 個直徑，再多一點點）';
+    rulerConclusion.style.opacity = 1;
+  }
+
+  function hideRuler(){
+    [ruler1, ruler2, ruler3, rulerPartial, ruler1Label, ruler2Label, ruler3Label,
+     rulerPartialLabel, rulerConclusion, tick1, tick2, tick3].forEach(el => { el.style.opacity = 0; });
+  }
+
+  function redrawStatic(){
+    const drawRPx = radiusToDrawPx(radiusCm);
+    const barRPx = drawPxToBarPx(drawRPx);
+    circleOutline.setAttribute('r', drawRPx.toFixed(2));
+
+    if(!isStraight){
+      circumLine.setAttribute('points', pointsToStr(getCirclePoints(drawRPx)));
+      diameterLine.setAttribute('x1', (CX - drawRPx).toFixed(2));
+      diameterLine.setAttribute('y1', CY);
+      diameterLine.setAttribute('x2', (CX + drawRPx).toFixed(2));
+      diameterLine.setAttribute('y2', CY);
+      diameterChordLabel.setAttribute('x', CX);
+      diameterChordLabel.setAttribute('y', (CY - 20).toFixed(2));
+      diameterChordLabel.style.opacity = 1;
+      circumChordLabel.setAttribute('x', (CX + drawRPx + 18).toFixed(2));
+      circumChordLabel.setAttribute('y', (CY + 10).toFixed(2));
+      circumChordLabel.style.opacity = 1;
+      diameterBarLabel.style.opacity = 0;
+      circumBarLabel.style.opacity = 0;
+      circleOutline.style.opacity = 1;
+      hideRuler();
+    } else {
+      circumLine.setAttribute('points', pointsToStr(getStraightCircumPoints(barRPx)));
+      diameterLine.setAttribute('x1', LINE_X0);
+      diameterLine.setAttribute('y1', DIAM_BAR_Y);
+      diameterLine.setAttribute('x2', (LINE_X0 + 2 * barRPx).toFixed(2));
+      diameterLine.setAttribute('y2', DIAM_BAR_Y);
+      diameterChordLabel.style.opacity = 0;
+      circumChordLabel.style.opacity = 0;
+      updateBarLabels(radiusCm);
+      diameterBarLabel.style.opacity = 1;
+      circumBarLabel.style.opacity = 1;
+      circleOutline.style.opacity = 0.35;
+      showRuler(barRPx);
+    }
+  }
+
+  function animateToggle(){
+    if(animating) return;
+    animating = true;
+    diameterSlider.disabled = true;
+    diameterInput.disabled = true;
+    circumSlider.disabled = true;
+    circumInput.disabled = true;
+    straightenBtn.disabled = true;
+
+    const drawRPx = radiusToDrawPx(radiusCm);
+    const barRPx = drawPxToBarPx(drawRPx);
+    const toStraight = !isStraight;
+
+    const circStart = toStraight ? getCirclePoints(drawRPx) : getStraightCircumPoints(barRPx);
+    const circEnd = toStraight ? getStraightCircumPoints(barRPx) : getCirclePoints(drawRPx);
+
+    const chordCircle = { x1: CX - drawRPx, y1: CY, x2: CX + drawRPx, y2: CY };
+    const chordBar = { x1: LINE_X0, y1: DIAM_BAR_Y, x2: LINE_X0 + 2 * barRPx, y2: DIAM_BAR_Y };
+    const dStart = toStraight ? chordCircle : chordBar;
+    const dEnd = toStraight ? chordBar : chordCircle;
+
+    updateBarLabels(radiusCm);
+    showRuler(barRPx);
+
+    const duration = 950;
+    const t0 = performance.now();
+
+    function frame(now){
+      const raw = Math.min((now - t0) / duration, 1);
+      const e = easeInOutCubic(raw);
+
+      const circPts = circStart.map((p, i) => ({
+        x: p.x + (circEnd[i].x - p.x) * e,
+        y: p.y + (circEnd[i].y - p.y) * e
+      }));
+      circumLine.setAttribute('points', pointsToStr(circPts));
+
+      const x1 = dStart.x1 + (dEnd.x1 - dStart.x1) * e;
+      const y1 = dStart.y1 + (dEnd.y1 - dStart.y1) * e;
+      const x2 = dStart.x2 + (dEnd.x2 - dStart.x2) * e;
+      const y2 = dStart.y2 + (dEnd.y2 - dStart.y2) * e;
+      diameterLine.setAttribute('x1', x1.toFixed(2));
+      diameterLine.setAttribute('y1', y1.toFixed(2));
+      diameterLine.setAttribute('x2', x2.toFixed(2));
+      diameterLine.setAttribute('y2', y2.toFixed(2));
+
+      const fadeOut = toStraight ? (1 - e) : e;
+      const fadeIn = toStraight ? e : (1 - e);
+      diameterChordLabel.style.opacity = fadeOut;
+      circumChordLabel.style.opacity = fadeOut;
+      diameterBarLabel.style.opacity = fadeIn;
+      circumBarLabel.style.opacity = fadeIn;
+      circleOutline.style.opacity = 1 - 0.65 * fadeIn;
+      [ruler1, ruler2, ruler3, rulerPartial, ruler1Label, ruler2Label, ruler3Label,
+       rulerPartialLabel, rulerConclusion, tick1, tick2, tick3].forEach(el => { el.style.opacity = fadeIn; });
+
+      if(raw < 1){
+        requestAnimationFrame(frame);
+      } else {
+        isStraight = toStraight;
+        animating = false;
+        diameterSlider.disabled = false;
+        diameterInput.disabled = false;
+        circumSlider.disabled = false;
+        circumInput.disabled = false;
+        straightenBtn.disabled = false;
+        straightenBtn.textContent = isStraight ? '還原成圓形' : '把圓周長拉直、直徑拉下來比長度';
+        if(isStraight){ showRuler(barRPx); } else { hideRuler(); }
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function applyRadius(rCm){
+    radiusCm = Math.max(RADIUS_MIN_CM, Math.min(RADIUS_MAX_CM, rCm));
+    const d = radiusCm * 2;
+    diameterSlider.value = d.toFixed(1);
+    diameterInput.value = d.toFixed(1);
+    const c = Math.max(CIRCUM_MIN_CM, Math.min(CIRCUM_MAX_CM, 2 * CIRCLE_RATIO * radiusCm));
+    circumSlider.value = c.toFixed(1);
+    circumInput.value = c.toFixed(1);
+    if(!animating) redrawStatic();
+  }
+
+  function setDiameter(newVal){
+    let v = parseFloat(newVal);
+    if(isNaN(v)) v = radiusCm * 2;
+    v = Math.max(RADIUS_MIN_CM * 2, Math.min(RADIUS_MAX_CM * 2, v));
+    applyRadius(v / 2);
+  }
+
+  function setCircumference(newVal){
+    let v = parseFloat(newVal);
+    if(isNaN(v)) v = 2 * CIRCLE_RATIO * radiusCm;
+    v = Math.max(CIRCUM_MIN_CM, Math.min(CIRCUM_MAX_CM, v));
+    applyRadius(v / (2 * CIRCLE_RATIO));
+  }
+
+  diameterSlider.addEventListener('input', () => setDiameter(diameterSlider.value));
+  diameterInput.addEventListener('input', () => setDiameter(diameterInput.value));
+  diameterInput.addEventListener('blur', () => setDiameter(diameterInput.value));
+
+  circumSlider.addEventListener('input', () => setCircumference(circumSlider.value));
+  circumInput.addEventListener('input', () => setCircumference(circumInput.value));
+  circumInput.addEventListener('blur', () => setCircumference(circumInput.value));
+
+  straightenBtn.addEventListener('click', animateToggle);
+
+  applyRadius(radiusCm);
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

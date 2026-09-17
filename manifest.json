@@ -1,0 +1,17 @@
+{
+  "name": "圓周長與直徑關係電腦版",
+  "short_name": "圓周長與直徑",
+  "description": "電腦版互動教具：拖曳滑桿改變圓的大小，把圓周長拉直後與直徑並排比較，直觀認識圓周長與直徑的倍數關係。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF2F0",
+  "theme_color": "#1B6B6B",
+  "orientation": "landscape",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
